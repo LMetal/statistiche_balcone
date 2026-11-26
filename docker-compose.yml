@@ -1,0 +1,42 @@
+# Pensato per Portainer (Stacks > Add stack > Repository).
+# Le variabili ${...} si impostano nella sezione "Environment variables" di Portainer.
+services:
+  analyzer:
+    build: ./analyzer
+    container_name: audio-analyzer
+    restart: unless-stopped
+    environment:
+      STREAM_URL: ${STREAM_URL}
+      CAL_OFFSET_DB: ${CAL_OFFSET_DB:-0}
+      DETECT_THRESHOLD: ${DETECT_THRESHOLD:-0.30}
+      WINDOW_SECONDS: ${WINDOW_SECONDS:-5}
+
+  prometheus:
+    build: ./prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=180d
+    volumes:
+      - prom_data:/prometheus
+    depends_on:
+      - analyzer
+
+  grafana:
+    build: ./grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  prom_data:
+  grafana_data:

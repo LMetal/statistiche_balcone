@@ -1,0 +1,55 @@
+{
+  "uid": "suono-balcone",
+  "title": "Suono del balcone",
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-24h", "to": "now" },
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Livello sonoro (dB A)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 20, "x": 0, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sound_level_db", "legendFormat": "LAeq" },
+        { "refId": "B", "expr": "sound_level_max_db", "legendFormat": "Picco" }
+      ]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Stream",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 4, "x": 20, "y": 0 },
+      "targets": [ { "refId": "A", "expr": "stream_up" } ],
+      "fieldConfig": { "defaults": {
+        "mappings": [ { "type": "value", "options": {
+          "0": { "text": "OFF", "color": "red" },
+          "1": { "text": "OK", "color": "green" } } } ] } }
+    },
+    {
+      "id": 3, "type": "bargauge", "title": "Eventi nel periodo selezionato",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 10, "w": 10, "x": 0, "y": 9 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" },
+      "targets": [ { "refId": "A", "instant": true,
+        "expr": "sum by (label) (increase(yamnet_detections_total[$__range]))",
+        "legendFormat": "{{label}}" } ],
+      "fieldConfig": { "defaults": { "decimals": 0, "min": 0 } }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Eventi nel tempo",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 10, "w": 14, "x": 10, "y": 9 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "fillOpacity": 70, "stacking": { "mode": "normal" } } } },
+      "targets": [ { "refId": "A",
+        "expr": "sum by (label) (increase(yamnet_detections_total[$__interval]))",
+        "legendFormat": "{{label}}" } ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Punteggio YAMNet (0-1)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 19 },
+      "fieldConfig": { "defaults": { "min": 0, "max": 1 } },
+      "targets": [ { "refId": "A", "expr": "yamnet_score > 0.05", "legendFormat": "{{label}}" } ]
+    }
+  ]
+}
